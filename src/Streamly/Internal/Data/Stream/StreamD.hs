@@ -237,6 +237,7 @@ module Streamly.Internal.Data.Stream.StreamD
     , postscanlM
     , postscanl'
     , postscanlM'
+    , postscanrM'
 
     , postscanlx'
     , postscanlMx'
@@ -3365,6 +3366,18 @@ scanl1M' fstep (Stream step state) = Stream step' (state, Nothing)
 {-# INLINE scanl1' #-}
 scanl1' :: Monad m => (a -> a -> a) -> Stream m a -> Stream m a
 scanl1' f = scanl1M' (\x y -> return (f x y))
+
+{-# INLINE_NORMAL postscanrM' #-}
+postscanrM'
+    :: forall m a b . Monad m
+    => (a -> b -> m b) -> b -> Stream m a -> Stream m b
+postscanrM' fstep begin stream = reverse scannedStream
+  where
+    reversedStream :: Stream m a
+    reversedStream = reverse stream
+
+    scannedStream :: Monad m => Stream m b
+    scannedStream = postscanlM' (flip fstep) begin reversedStream
 
 ------------------------------------------------------------------------------
 -- Stateful map/scan
